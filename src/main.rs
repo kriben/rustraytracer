@@ -33,6 +33,16 @@ fn vec_dot_product_opposite_direction_is_minus_one() {
     assert_eq!(down.dot(up), -1.0);
 }
 
+#[test]
+fn vec_cross_product_test() {
+    let up = Vec::new(0.0, 1.0, 0.0);
+    let right = Vec::new(1.0, 0.0, 0.0);
+    let crossed = Vec::cross(up, right);
+    assert_eq!(crossed.x, 0.0);
+    assert_eq!(crossed.y, 0.0);
+    assert_eq!(crossed.z, -1.0);
+}
+
 
 
 #[derive(Clone, Copy)]
@@ -56,6 +66,35 @@ impl Vec {
 
     fn dot(&self, other: Vec) -> f64 {
         self.x * other.x + self.y * other.y + self.z * other.z
+    }
+
+    fn cross(u: Vec, v: Vec) -> Vec {
+        return Vec::new(u.y * v.z - u.z * v.y,
+                        u.z * v.x - u.x * v.z,
+                        u.x * v.y - u.y * v.x)
+    }
+}
+
+
+#[test]
+fn ray_has_origin_and_destination() {
+    let origin = Vec::new(1.0, 2.0, 3.0);
+    let direction = Vec::new(4.0, 5.0, 6.0);
+    let ray = Ray::new(origin, direction);
+    assert_eq!(ray.origin.x, origin.x);
+    assert_eq!(ray.direction.x, direction.x);
+}
+
+
+
+struct Ray {
+    origin: Vec,
+    direction: Vec
+}
+
+impl Ray {
+    fn new(origin: Vec, direction: Vec) -> Ray {
+        Ray { origin: origin, direction: direction }
     }
 }
 
