@@ -1,4 +1,5 @@
 use std::ops::Add;
+use std::ops::Sub;
 
 #[test]
 fn vec_constructor_works() {
@@ -55,6 +56,16 @@ fn vec_addition() {
     assert_eq!(res.z, 12.0);
 }
 
+#[test]
+fn vec_subtraction() {
+    let x = Vec::new(1.0, 2.0, 3.0);
+    let y = Vec::new(7.0, 8.0, 9.0);
+    let res = x - y;
+    assert_eq!(res.x, -6.0);
+    assert_eq!(res.y, -6.0);
+    assert_eq!(res.z, -6.0);
+}
+
 #[derive(Clone, Copy)]
 struct Vec {
     x: f64,
@@ -92,6 +103,16 @@ impl Add for Vec {
         Vec::new(self.x + _rhs.x,
                  self.y + _rhs.y,
                  self.z + _rhs.z)
+    }
+}
+
+impl Sub for Vec {
+    type Output = Vec;
+
+    fn sub(self, _rhs: Vec) -> Vec {
+        Vec::new(self.x - _rhs.x,
+                 self.y - _rhs.y,
+                 self.z - _rhs.z)
     }
 }
 
