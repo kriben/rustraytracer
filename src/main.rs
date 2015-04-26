@@ -1,3 +1,5 @@
+use std::ops::Add;
+
 #[test]
 fn vec_constructor_works() {
     let x = 1.0f64;
@@ -43,7 +45,15 @@ fn vec_cross_product_test() {
     assert_eq!(crossed.z, -1.0);
 }
 
-
+#[test]
+fn vec_addition() {
+    let x = Vec::new(1.0, 2.0, 3.0);
+    let y = Vec::new(7.0, 8.0, 9.0);
+    let res = x + y;
+    assert_eq!(res.x, 8.0);
+    assert_eq!(res.y, 10.0);
+    assert_eq!(res.z, 12.0);
+}
 
 #[derive(Clone, Copy)]
 struct Vec {
@@ -74,6 +84,17 @@ impl Vec {
                         u.x * v.y - u.y * v.x)
     }
 }
+
+impl Add for Vec {
+    type Output = Vec;
+
+    fn add(self, _rhs: Vec) -> Vec {
+        Vec::new(self.x + _rhs.x,
+                 self.y + _rhs.y,
+                 self.z + _rhs.z)
+    }
+}
+
 
 
 #[test]
