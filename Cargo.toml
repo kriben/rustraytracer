@@ -2,3 +2,6 @@
 name = "rustraytracer"
 version = "0.1.0"
 authors = ["Kristian Bendiksen <kristian.bendiksen@gmail.com>"]
+
+[dependencies]
+rand = "0.3"
