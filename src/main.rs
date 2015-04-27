@@ -1,6 +1,3 @@
-use std::ops::Add;
-use std::ops::Sub;
-use std::ops::Mul;
 pub mod vec3;
 use vec3::Vec3;
 extern crate rand;
