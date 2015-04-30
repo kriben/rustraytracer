@@ -25,6 +25,31 @@ impl Ray {
 }
 
 
+#[test]
+fn sphere_constructor_works() {
+    let radius = 63.0;
+    let position = Vec3::new(1.0, 2.0, 3.0);
+    let emission = Vec3::new(4.0, 5.0, 6.0);
+    let color = Vec3::new(255.0, 0.0, 0.0);
+    let sphere = Sphere::new(radius, position, emission, color);
+    assert_eq!(sphere.radius, radius);
+}
+
+struct Sphere {
+    radius: f64,
+    position: Vec3,
+    emission: Vec3,
+    color: Vec3
+}
+
+impl Sphere {
+    fn new(radius: f64, position: Vec3, emission: Vec3, color: Vec3) -> Sphere {
+        Sphere { radius: radius, position: position, emission: emission, color: color }
+    }
+}
+
+
+
 fn tent_filter() -> f64 {    
     let r1 : f64 = 2.0 * rand::random::<f64>();
     if r1 < 1.0 {
