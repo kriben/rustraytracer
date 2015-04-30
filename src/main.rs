@@ -35,6 +35,32 @@ fn sphere_constructor_works() {
     assert_eq!(sphere.radius, radius);
 }
 
+#[test]
+fn sphere_ray_intersection_when_missing() {
+    // Place a sphere in origin and cast a ray away from it
+    let position = Vec3::new(0.0, 0.0, 0.0);
+    let emission = Vec3::new(4.0, 5.0, 6.0);
+    let color = Vec3::new(255.0, 0.0, 0.0);
+    let sphere = Sphere::new(1.0, position, emission, color);
+
+    let ray = Ray::new(Vec3::new(3.0, 0.0, 0.0), Vec3::new(1.0, 1.0, 1.0));
+    assert_eq!(sphere.intersect(ray), 0.0);
+}
+
+#[test]
+fn sphere_ray_intersection_when_hitting() {
+    // Place a sphere in origin and cast a ray away from it
+    let position = Vec3::new(0.0, 0.0, 0.0);
+    let emission = Vec3::new(4.0, 5.0, 6.0);
+    let color = Vec3::new(255.0, 0.0, 0.0);
+    let sphere = Sphere::new(1.0, position, emission, color);
+
+    let ray = Ray::new(Vec3::new(3.0, 0.0, 0.0), Vec3::new(-1.0, 0.0, 0.0));
+    assert_eq!(sphere.intersect(ray), 2.0);
+}
+
+
+
 struct Sphere {
     radius: f64,
     position: Vec3,
@@ -45,6 +71,30 @@ struct Sphere {
 impl Sphere {
     fn new(radius: f64, position: Vec3, emission: Vec3, color: Vec3) -> Sphere {
         Sphere { radius: radius, position: position, emission: emission, color: color }
+    }
+
+    fn intersect(self: Sphere, ray: Ray) -> f64 {
+        // Solve t^2*d.d + 2*t*(o-p).d + (o-p).(o-p)-R^2 = 0
+        let op: Vec3 = self.position - ray.origin;
+        let t = 1.0e-4;
+        let eps = 1.0e-4;
+        let b : f64 = op.dot(ray.direction);
+        let det : f64 = b * b - op.dot(op) + self.radius * self.radius;
+
+        if (det < 0.0) {
+            return 0.0;
+        }
+
+        let det2 = det.sqrt();
+
+        if (b - det2) > eps {
+            return b - det2;
+        }
+        else if (b + det2 > eps) {
+            return b + det2;
+        }
+
+        return 0.0;
     }
 }
 
