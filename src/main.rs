@@ -133,9 +133,54 @@ fn intersect(ray: Ray, spheres: &Vec<Sphere>) -> Option<(usize, f64)> {
     }
 }
 
-fn radiance(r: Ray, depth: i32, spheres: &Vec<Sphere>) -> Vec3 {
+fn make_perpendicular_vec3(w: Vec3) -> Vec3 {
+    if w.x.abs() > 0.1 { 
+        Vec3::cross(Vec3::new(0.0, 1.0, 0.0), w)
+    }
+    else {
+        Vec3::cross(Vec3::new(1.0, 0.0, 0.0), w)
+    }
+}
 
-    Vec3::new(spheres[0].radius, 0.0, 0.0)
+fn radiance(ray: Ray, depth: i32, spheres: &Vec<Sphere>) -> Vec3 {
+    let x = intersect(ray, spheres);
+    if x.is_none() {
+        // If miss return black
+        return Vec3::new(0.0, 0.0, 0.0);
+    }
+
+    let (id, t) = x.unwrap();
+    let x = ray.origin + ray.direction * t;
+    let n = Vec3::normalized(x - spheres[id].position);
+    let nl = if n.dot(ray.direction) < 0.0 { n } else { n * -1.0 };
+    let mut f = spheres[id].color;
+    // Max reflection
+    let p = f.max_coeff();
+
+    if depth + 1 > 5 {
+        if rand::random::<f64>() < p {
+            f = f * (1.0 / p);
+        }
+        else {
+            return spheres[id].emission; //R.R.
+        }
+    }
+        
+    // Ideal DIFFUSE reflection
+    // Random angle
+    let r1 = 2.0 * std::f64::consts::PI * rand::random::<f64>();
+    // Distance from center
+    let r2 = rand::random::<f64>();
+    let r2s = r2.sqrt();
+    // Normal
+    let w : Vec3 = nl;
+    // Make u perpedicular to w
+    let u : Vec3 = Vec3::normalized(make_perpendicular_vec3(w));
+    // u is perpendicular to w
+    let v : Vec3 = Vec3::cross(w, u);
+    // Random reflection ray
+    let d : Vec3 = Vec3::normalized(u*r1.cos()*r2s + v*r1.sin()*r2s + w*(1.0-r2).sqrt());
+    return spheres[id].emission + (radiance(Ray::new(x, d), depth + 1, spheres) * f);
 }
 
 #[cfg(not(test))]
