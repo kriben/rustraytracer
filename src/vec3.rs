@@ -93,6 +93,16 @@ fn vec_max_coeff() {
 }
 
 
+#[test]
+fn vec_clamp() {
+    let a = Vec3::new(-1.0, 0.5, 4.0);
+    let c = Vec3::clamp(a, 0.0, 1.0);
+    assert_eq!(c.x, 0.0);
+    assert_eq!(c.y, 0.5);
+    assert_eq!(c.z, 1.0);
+}
+
+
 #[derive(Clone, Copy)]
 pub struct Vec3 {
     pub x: f64,
@@ -131,6 +141,16 @@ impl Vec3 {
 
     pub fn max_coeff(&self) -> f64 {
         self.x.max(self.y).max(self.z)
+    }
+
+    fn clamp_coeff(value : f64, min: f64, max: f64) -> f64 {
+        value.max(min).min(max)
+    }
+
+    pub fn clamp(v: Vec3, min: f64, max: f64) -> Vec3 {
+        Vec3::new(Vec3::clamp_coeff(v.x, min, max),
+                  Vec3::clamp_coeff(v.y, min, max),
+                  Vec3::clamp_coeff(v.z, min, max))
     }
 }
 
