@@ -108,8 +108,8 @@ impl Vec3 {
     pub fn normalized(v: Vec3) -> Vec3 {
         let length = v.dot(v).sqrt();
         return Vec3::new(v.x / length,
-                        v.y / length,
-                        v.z / length);
+                         v.y / length,
+                         v.z / length);
     }
 
     pub fn dot(&self, other: Vec3) -> f64 {
@@ -118,8 +118,8 @@ impl Vec3 {
 
     pub fn cross(u: Vec3, v: Vec3) -> Vec3 {
         return Vec3::new(u.y * v.z - u.z * v.y,
-                        u.z * v.x - u.x * v.z,
-                        u.x * v.y - u.y * v.x)
+                         u.z * v.x - u.x * v.z,
+                         u.x * v.y - u.y * v.x)
     }
 }
 
@@ -128,8 +128,8 @@ impl Add for Vec3 {
 
     fn add(self, _rhs: Vec3) -> Vec3 {
         Vec3::new(self.x + _rhs.x,
-                 self.y + _rhs.y,
-                 self.z + _rhs.z)
+                  self.y + _rhs.y,
+                  self.z + _rhs.z)
     }
 }
 
@@ -138,8 +138,8 @@ impl Sub for Vec3 {
 
     fn sub(self, _rhs: Vec3) -> Vec3 {
         Vec3::new(self.x - _rhs.x,
-                 self.y - _rhs.y,
-                 self.z - _rhs.z)
+                  self.y - _rhs.y,
+                  self.z - _rhs.z)
     }
 }
 
