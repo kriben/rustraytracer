@@ -203,9 +203,10 @@ fn main() {
     // y diraction increment
     let cy = Vec3::normalized(Vec3::cross(cx, cam.direction)) * 0.5135;
 
-
+    let mut image = Vec::with_capacity(h * w);
     for y in 0..h { // Loop over image rows
         for x in 0..w { // Loop over image cols
+            let mut pixel = Vec3::new(0.0, 0.0, 0.0);
             for sy in 0..2 { // 2x2 subpixel rows
                 for sx in 0..2 { // 2x2 subpixel cols
                     let mut r = Vec3::new(0.0, 0.0, 0.0);
@@ -220,8 +221,10 @@ fn main() {
                                            Vec3::normalized(d));
                         r = r + radiance(ray, 0, &spheres) * (1.0 / samps as f64);
                     }
+                    pixel = pixel + Vec3::clamp(r, 0.0, 1.0) * 0.25;
                 }
             }
+            image.push(pixel);
         }
     }
 }
