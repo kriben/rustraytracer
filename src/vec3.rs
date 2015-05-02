@@ -76,6 +76,16 @@ fn vec_multiplication_f64() {
     assert_eq!(res.z, 6.0);
 }
 
+#[test]
+fn vec_multiplication_vec() {
+    let a = Vec3::new(2.0, 3.0, 4.0);
+    let b = Vec3::new(5.0, 6.0, 7.0);
+    let res = a * b;
+    assert_eq!(res.x, 10.0);
+    assert_eq!(res.y, 18.0);
+    assert_eq!(res.z, 28.0);
+}
+
 #[derive(Clone, Copy)]
 pub struct Vec3 {
     pub x: f64,
@@ -130,6 +140,16 @@ impl Sub for Vec3 {
         Vec3::new(self.x - _rhs.x,
                  self.y - _rhs.y,
                  self.z - _rhs.z)
+    }
+}
+
+impl Mul for Vec3 {
+    type Output = Vec3;
+
+    fn mul(self, _rhs: Vec3) -> Vec3 {
+        Vec3::new(self.x * _rhs.x,
+                  self.y * _rhs.y,
+                  self.z * _rhs.z)
     }
 }
 
