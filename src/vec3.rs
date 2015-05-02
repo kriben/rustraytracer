@@ -86,6 +86,13 @@ fn vec_multiplication_vec() {
     assert_eq!(res.z, 28.0);
 }
 
+#[test]
+fn vec_max_coeff() {
+    let a = Vec3::new(2.0, 3.0, 4.0);
+    assert_eq!(a.max_coeff(), 4.0);
+}
+
+
 #[derive(Clone, Copy)]
 pub struct Vec3 {
     pub x: f64,
@@ -120,6 +127,10 @@ impl Vec3 {
         return Vec3::new(u.y * v.z - u.z * v.y,
                          u.z * v.x - u.x * v.z,
                          u.x * v.y - u.y * v.x)
+    }
+
+    pub fn max_coeff(&self) -> f64 {
+        self.x.max(self.y).max(self.z)
     }
 }
 
@@ -160,4 +171,3 @@ impl Mul<f64> for Vec3 {
         return Vec3::new(self.x * rhs, self.y * rhs, self.z * rhs);
     }
 }
-
