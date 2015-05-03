@@ -284,6 +284,8 @@ fn main() {
 
     let mut image = Vec::with_capacity(h * w);
     for y in 0..h { // Loop over image rows
+        print!("\rRendering ({} spp) {:.*}%", samps*4,
+               2, 100.0 * y as f64 / (h - 1) as f64);
         for x in 0..w { // Loop over image cols
             let mut pixel = Vec3::new(0.0, 0.0, 0.0);
             for sy in 0..2 { // 2x2 subpixel rows
