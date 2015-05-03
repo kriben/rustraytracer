@@ -39,7 +39,8 @@ fn sphere_constructor_works() {
     let position = Vec3::new(1.0, 2.0, 3.0);
     let emission = Vec3::new(4.0, 5.0, 6.0);
     let color = Vec3::new(255.0, 0.0, 0.0);
-    let sphere = Sphere::new(radius, position, emission, color);
+    let sphere = Sphere::new(radius, position, emission, color,
+                             Reflection::DIFF);
     assert_eq!(sphere.radius, radius);
 }
 
@@ -49,7 +50,7 @@ fn sphere_ray_intersection_when_missing() {
     let position = Vec3::new(0.0, 0.0, 0.0);
     let emission = Vec3::new(4.0, 5.0, 6.0);
     let color = Vec3::new(255.0, 0.0, 0.0);
-    let sphere = Sphere::new(1.0, position, emission, color);
+    let sphere = Sphere::new(1.0, position, emission, color, Reflection::DIFF);
 
     let ray = Ray::new(Vec3::new(3.0, 0.0, 0.0), Vec3::new(1.0, 1.0, 1.0));
     assert_eq!(sphere.intersect(ray).is_none(), true);
@@ -61,24 +62,36 @@ fn sphere_ray_intersection_when_hitting() {
     let position = Vec3::new(0.0, 0.0, 0.0);
     let emission = Vec3::new(4.0, 5.0, 6.0);
     let color = Vec3::new(255.0, 0.0, 0.0);
-    let sphere = Sphere::new(1.0, position, emission, color);
+    let sphere = Sphere::new(1.0, position, emission, color, Reflection::DIFF);
 
     let ray = Ray::new(Vec3::new(3.0, 0.0, 0.0), Vec3::new(-1.0, 0.0, 0.0));
     assert_eq!(sphere.intersect(ray), Some(2.0));
 }
 
+#[derive(Clone, Copy)]
+enum Reflection {
+    DIFF,
+    SPEC,
+    REFR
+}
 
 #[derive(Clone, Copy)]
 struct Sphere {
     radius: f64,
     position: Vec3,
     emission: Vec3,
-    color: Vec3
+    color: Vec3,
+    reflection: Reflection
 }
 
 impl Sphere {
-    fn new(radius: f64, position: Vec3, emission: Vec3, color: Vec3) -> Sphere {
-        Sphere { radius: radius, position: position, emission: emission, color: color }
+    fn new(radius: f64, position: Vec3, emission: Vec3,
+           color: Vec3, reflection: Reflection) -> Sphere {
+        Sphere { radius: radius,
+                 position: position,
+                 emission: emission,
+                 color: color,
+                 reflection: reflection }
     }
 
     fn intersect(self: Sphere, ray: Ray) -> Option<f64> {
@@ -174,21 +187,33 @@ fn radiance(ray: Ray, depth: i32, spheres: &Vec<Sphere>) -> Vec3 {
         }
     }
 
-    // Ideal DIFFUSE reflection
-    // Random angle
-    let r1 = 2.0 * std::f64::consts::PI * rand::random::<f64>();
-    // Distance from center
-    let r2 = rand::random::<f64>();
-    let r2s = r2.sqrt();
-    // Normal
-    let w : Vec3 = nl;
-    // Make u perpedicular to w
-    let u : Vec3 = Vec3::normalized(make_perpendicular_vec3(w));
-    // u is perpendicular to w
-    let v : Vec3 = Vec3::cross(w, u);
-    // Random reflection ray
-    let d : Vec3 = Vec3::normalized(u*r1.cos()*r2s + v*r1.sin()*r2s + w*(1.0-r2).sqrt());
-    return spheres[id].emission + (radiance(Ray::new(x, d), depth + 1, spheres) * f);
+    match spheres[id].reflection {
+        Reflection::DIFF => {
+            // Ideal DIFFUSE reflection
+            // Random angle
+            let r1 = 2.0 * std::f64::consts::PI * rand::random::<f64>();
+            // Distance from center
+            let r2 = rand::random::<f64>();
+            let r2s = r2.sqrt();
+            // Normal
+            let w : Vec3 = nl;
+            // Make u perpedicular to w
+            let u : Vec3 = Vec3::normalized(make_perpendicular_vec3(w));
+            // u is perpendicular to w
+            let v : Vec3 = Vec3::cross(w, u);
+            // Random reflection ray
+            let d : Vec3 = Vec3::normalized(u*r1.cos()*r2s + v*r1.sin()*r2s + w*(1.0-r2).sqrt());
+            return spheres[id].emission + (radiance(Ray::new(x, d), depth + 1, spheres) * f);
+        }
+        Reflection::SPEC => {
+            let new_ray = Ray::new(x, ray.direction - n * 2.0 * n.dot(ray.direction));
+            return spheres[id].emission + (radiance(new_ray, depth + 1, spheres) * f);
+        }
+        Reflection::REFR => {
+            // Not implemented yet
+            return Vec3::new(1.0, 0.0, 0.0);
+        }
+    }
 }
 
 #[cfg(not(test))]
@@ -202,37 +227,50 @@ fn main() {
         Sphere::new(1e5,
                     Vec3::new(1.0e5 + 1.0, 40.8, 81.6),
                     Vec3::new(0.0, 0.0, 0.0),
-                    Vec3::new(0.75,0.25,0.25)),
+                    Vec3::new(0.75,0.25,0.25),
+                    Reflection::DIFF),
         // Right
         Sphere::new(1.0e5,
                     Vec3::new(-1.0e5+99.0, 40.8, 81.6),
                     Vec3::new(0.0, 0.0, 0.0),
-                    Vec3::new(0.25,0.25,0.75)),
+                    Vec3::new(0.25,0.25,0.75),
+                    Reflection::DIFF),
         // Back
         Sphere::new(1e5,
                     Vec3::new(50.0, 40.8, 1.0e5),
                     Vec3::new(0.0, 0.0, 0.0),
-                    Vec3::new(0.75, 0.75, 0.75)),
+                    Vec3::new(0.75, 0.75, 0.75),
+                    Reflection::DIFF),
         // Front
         Sphere::new(1e5,
                     Vec3::new(50.0, 40.8, -1.0e5 + 170.0),
                     Vec3::new(0.0, 0.0, 0.0),
-                    Vec3::new(0.0, 0.0, 0.0)),
+                    Vec3::new(0.0, 0.0, 0.0),
+                    Reflection::DIFF),
         // Bottom
         Sphere::new(1e5,
                     Vec3::new(50.0, 1.0e5, 81.6),
                     Vec3::new(0.0, 0.0, 0.0),
-                    Vec3::new(0.75, 0.75, 0.75)),
+                    Vec3::new(0.75, 0.75, 0.75),
+                    Reflection::DIFF),
         // Top
         Sphere::new(1e5,
                     Vec3::new(50.0, -1.0e5 + 81.6, 81.6),
                     Vec3::new(0.0, 0.0, 0.0),
-                    Vec3::new(0.75, 0.75, 0.75)),
+                    Vec3::new(0.75, 0.75, 0.75),
+                    Reflection::DIFF),
+        // Mirror
+        Sphere::new(16.5,
+                    Vec3::new(27.0, 16.5, 47.0),
+                    Vec3::new(0.0, 0.0, 0.0),
+                    Vec3::new(1.0, 1.0, 1.0) * 0.999,
+                    Reflection::SPEC),
         // Light
         Sphere::new(600.0,
                     Vec3::new(50.0, 681.6 - 0.27, 81.6),
                     Vec3::new(12.0, 12.0, 12.0),
-                    Vec3::new(0.0, 0.0, 0.0))
+                    Vec3::new(0.0, 0.0, 0.0),
+                    Reflection::DIFF)
             ];
 
 
