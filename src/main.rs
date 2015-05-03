@@ -284,9 +284,11 @@ fn save_image(width: u32, height: u32, pixels: &Vec<Vec3>) {
         for x in 0..width { // Loop over image cols
             //Put a pixel at coordinate (100, 100)
             let idx = (y * width + x) as usize;
-            img.put_pixel(x, y, image::Rgb([to_int(pixels[idx].x),
-                                            to_int(pixels[idx].y),
-                                            to_int(pixels[idx].z)]));
+
+            img.put_pixel(x, height - 1 - y,
+                          image::Rgb([to_int(pixels[idx].x),
+                                      to_int(pixels[idx].y),
+                                      to_int(pixels[idx].z)]));
         }
     }
 
