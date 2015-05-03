@@ -1,6 +1,14 @@
 pub mod vec3;
 use vec3::Vec3;
+use std::path::Path;
 extern crate rand;
+extern crate image;
+
+use image::{
+    GenericImage,
+    ImageBuffer
+};
+
 
 #[test]
 fn ray_has_origin_and_destination() {
@@ -134,7 +142,7 @@ fn intersect(ray: Ray, spheres: &Vec<Sphere>) -> Option<(usize, f64)> {
 }
 
 fn make_perpendicular_vec3(w: Vec3) -> Vec3 {
-    if w.x.abs() > 0.1 { 
+    if w.x.abs() > 0.1 {
         Vec3::cross(Vec3::new(0.0, 1.0, 0.0), w)
     }
     else {
@@ -165,7 +173,7 @@ fn radiance(ray: Ray, depth: i32, spheres: &Vec<Sphere>) -> Vec3 {
             return spheres[id].emission; //R.R.
         }
     }
-        
+
     // Ideal DIFFUSE reflection
     // Random angle
     let r1 = 2.0 * std::f64::consts::PI * rand::random::<f64>();
@@ -187,11 +195,44 @@ fn radiance(ray: Ray, depth: i32, spheres: &Vec<Sphere>) -> Vec3 {
 fn main() {
     let w = 512;
     let h = 384;
-    let samps = 500/4;
-
+    let samps = 40/4;
 
     let spheres= vec![
-        Sphere::new(1e5, Vec3::new(1e5, 40.8, 81.6), Vec3::new(0.0, 0.0, 0.0), Vec3::new(0.75,0.25,0.25))
+        // Left
+        Sphere::new(1e5,
+                    Vec3::new(1.0e5 + 1.0, 40.8, 81.6),
+                    Vec3::new(0.0, 0.0, 0.0),
+                    Vec3::new(0.75,0.25,0.25)),
+        // Right
+        Sphere::new(1.0e5,
+                    Vec3::new(-1.0e5+99.0, 40.8, 81.6),
+                    Vec3::new(0.0, 0.0, 0.0),
+                    Vec3::new(0.25,0.25,0.75)),
+        // Back
+        Sphere::new(1e5,
+                    Vec3::new(50.0, 40.8, 1.0e5),
+                    Vec3::new(0.0, 0.0, 0.0),
+                    Vec3::new(0.75, 0.75, 0.75)),
+        // Front
+        Sphere::new(1e5,
+                    Vec3::new(50.0, 40.8, -1.0e5 + 170.0),
+                    Vec3::new(0.0, 0.0, 0.0),
+                    Vec3::new(0.0, 0.0, 0.0)),
+        // Bottom
+        Sphere::new(1e5,
+                    Vec3::new(50.0, 1.0e5, 81.6),
+                    Vec3::new(0.0, 0.0, 0.0),
+                    Vec3::new(0.75, 0.75, 0.75)),
+        // Top
+        Sphere::new(1e5,
+                    Vec3::new(50.0, -1.0e5 + 81.6, 81.6),
+                    Vec3::new(0.0, 0.0, 0.0),
+                    Vec3::new(0.75, 0.75, 0.75)),
+        // Light
+        Sphere::new(600.0,
+                    Vec3::new(50.0, 681.6 - 0.27, 81.6),
+                    Vec3::new(12.0, 12.0, 12.0),
+                    Vec3::new(0.0, 0.0, 0.0))
             ];
 
 
@@ -227,4 +268,28 @@ fn main() {
             image.push(pixel);
         }
     }
+
+    save_image(w as u32, h as u32, &image);
+}
+
+fn to_int(input : f64) -> u8 {
+    let x = input.min(1.0).max(0.0);
+    return (x.powf(1.0/2.2)*255.0 + 0.5) as u8;
+}
+
+fn save_image(width: u32, height: u32, pixels: &Vec<Vec3>) {
+    //Construct a new ImageBuffer with the specified width and height.
+    let mut img = ImageBuffer::new(width, height);
+    for y in 0..height { // Loop over image rows
+        for x in 0..width { // Loop over image cols
+            //Put a pixel at coordinate (100, 100)
+            let idx = (y * width + x) as usize;
+            img.put_pixel(x, y, image::Rgb([to_int(pixels[idx].x),
+                                            to_int(pixels[idx].y),
+                                            to_int(pixels[idx].z)]));
+        }
+    }
+
+    // Write the contents of this image to the Writer in PNG format.
+    let _ = img.save(Path::new("test.png"));
 }
