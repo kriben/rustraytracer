@@ -187,6 +187,7 @@ fn radiance(ray: Ray, depth: i32, spheres: &Vec<Sphere>) -> Vec3 {
         }
     }
 
+
     match spheres[id].reflection {
         Reflection::DIFF => {
             // Ideal DIFFUSE reflection
@@ -210,8 +211,51 @@ fn radiance(ray: Ray, depth: i32, spheres: &Vec<Sphere>) -> Vec3 {
             return spheres[id].emission + (radiance(new_ray, depth + 1, spheres) * f);
         }
         Reflection::REFR => {
-            // Not implemented yet
-            return Vec3::new(1.0, 0.0, 0.0);
+            // Ideal dielectric REFRACTION
+            let refl_ray = Ray::new(x, ray.direction - n * 2.0 * n.dot(ray.direction));
+            // Ray from outside going in?
+            let into = n.dot(nl) > 0.0;
+            let nc = 1.0f64;
+            let nt = 1.5f64;
+            let nnt = if into { nc / nt } else { nt / nc };
+            let ddn : f64 = ray.direction.dot(nl);
+            let cos2t = 1.0 - nnt * nnt * (1.0 - ddn * ddn);
+            // Total internal reflection
+            if cos2t < 0.0 {
+                return spheres[id].emission + (radiance(refl_ray, depth + 1, spheres) * f);
+            }
+
+            let negate = if into { 1.0 } else { -1.0 };
+            let tdir = Vec3::normalized(ray.direction * nnt - n *
+                                        (negate * (ddn*nnt+cos2t.sqrt())));
+
+            let a : f64 = nt-nc;
+            let b : f64 = nt+nc;
+            let r0 = a*a/(b*b);
+            let c : f64 = 1.0f64 - if into { -ddn } else { tdir.dot(n) };
+
+            let re : f64 = r0+(1.0-r0)*c*c*c*c*c;
+            let tr : f64 = 1.0 - re;
+
+            if depth + 1 > 2 {
+                // Russian roulette
+                let p : f64 = 0.25 + 0.5 * re;
+                if rand::random::<f64>() < p {
+                    let rp : f64 = re / p;
+                    return spheres[id].emission +
+                        (radiance(refl_ray, depth + 1, spheres) * rp) * f;
+                }
+                else {
+                    let tp : f64 = tr / (1.0 - p);
+                    return spheres[id].emission +
+                        (radiance(Ray::new(x, tdir), depth + 1, spheres) * tp) * f;
+                }
+            }
+            else {
+                return spheres[id].emission +
+                    (radiance(refl_ray, depth + 1, spheres) * re +
+                     radiance(Ray::new(x, tdir), depth + 1, spheres) * tr) * f;
+            }
         }
     }
 }
@@ -265,6 +309,12 @@ fn main() {
                     Vec3::new(0.0, 0.0, 0.0),
                     Vec3::new(1.0, 1.0, 1.0) * 0.999,
                     Reflection::SPEC),
+        // Glass
+        Sphere::new(16.5,
+                    Vec3::new(73.0, 16.5, 78.0),
+                    Vec3::new(0.0, 0.0, 0.0),
+                    Vec3::new(1.0, 1.0, 1.0) * 0.999,
+                    Reflection::REFR),
         // Light
         Sphere::new(600.0,
                     Vec3::new(50.0, 681.6 - 0.27, 81.6),
